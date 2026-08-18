@@ -30,7 +30,9 @@ h2{font-size:16px;font-weight:500;margin:28px 0 12px;padding-top:8px;border-top:
 .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 label{display:block;font-size:12px;color:var(--text-2);margin-bottom:5px}
 input[type=number]{width:100%;padding:8px 10px;border:0.5px solid var(--line-2);border-radius:var(--r-md);background:var(--card);color:var(--text);font-size:13px;font-family:inherit}
+input[type=date]{width:100%;padding:7px 10px;border:0.5px solid var(--line-2);border-radius:var(--r-md);background:var(--card);color:var(--text);font-size:13px;font-family:inherit}
 input[type=number]:focus{outline:none;border-color:var(--blue)}
+input[type=date]:focus{outline:none;border-color:var(--blue)}
 .cards{margin:16px 0}
 .cards>div{background:var(--surface);border-radius:var(--r-md);padding:12px 14px}
 .cards .k{font-size:12px;color:var(--text-2);margin:0 0 4px}
@@ -70,7 +72,11 @@ footer{margin-top:36px;font-size:12px;color:var(--text-3);text-align:center}
       <div><label>肩胛下角 (mm)</label><input id="m3" type="number" min="1" max="60" step="0.5" value="14" oninput="calc()"></div>
       <div><label>髂嵴上 (mm)</label><input id="m4" type="number" min="1" max="60" step="0.5" value="16" oninput="calc()"></div>
     </div>
-    <div style="max-width:180px;margin-bottom:14px"><label>年龄 (岁)</label><input id="age" type="number" min="17" max="80" value="28" oninput="calc()"></div>
+    <div style="max-width:220px;margin-bottom:14px">
+      <label>出生日期（自动计算年龄）</label>
+      <input id="bdate" type="date" onchange="calc()">
+      <p class="note" style="margin:4px 0 0">当前年龄：<b id="ageShow" style="color:var(--text)">28</b> 岁</p>
+    </div>
     <div class="grid3 cards">
       <div><p class="k">皮褶总和</p><p class="v" id="sumV">48 mm</p></div>
       <div><p class="k">估算体脂率</p><p class="v" id="bfV">17.5%</p></div>
@@ -95,6 +101,11 @@ footer{margin-top:36px;font-size:12px;color:var(--text-3);text-align:center}
     <div class="point"><b>肱二头肌</b><span>上臂前侧，肩峰与肘尖连线中点，垂直捏起。</span></div>
     <div class="point"><b>肩胛下角</b><span>右肩胛骨下角下方 1–2 cm，沿自然皮褶斜向捏起（与脊柱约 45°）。</span></div>
     <div class="point"><b>髂嵴上</b><span>右侧髂嵴上方、腋前线处，斜向捏起。</span></div>
+  </div>
+  <div class="tip" style="margin-top:10px">
+    <b style="color:var(--text)">为什么是「髂嵴上」而不是「腹部」？</b><br>
+    本计算器采用 <b>Durnin-Womersley 四部位法</b>，其标准点位之一就是髂嵴上（suprailiac），代入公式时必须用髂嵴上读数，换成腹部会使结果失准。<br>
+    腹部（脐旁）属于<b>另一套体系</b>（长岭晋吉标准、WHO 三处标准），仅用于快速肥胖判定和单部位参考（见下节④⑤），不参与四部位总和公式，两者不要混用。
   </div>
 
   <h2>④ 单部位正常参考值</h2>
@@ -147,9 +158,18 @@ function renderTable(cur){
   document.getElementById('tblBody').innerHTML=rows;
 }
 function val(id){var v=parseFloat(document.getElementById(id).value);return isNaN(v)?0:v;}
+function ageFrom(bs){
+  if(!bs)return 28;
+  var b=new Date(bs),now=new Date();
+  var a=now.getFullYear()-b.getFullYear();
+  var m=now.getMonth()-b.getMonth();
+  if(m<0||(m===0&&now.getDate()<b.getDate()))a--;
+  return Math.max(17,Math.min(80,a));
+}
 function calc(){
   var S=val('m1')+val('m2')+val('m3')+val('m4');
-  var age=Math.max(17,Math.min(80,val('age')||28));
+  var age=ageFrom(document.getElementById('bdate').value);
+  document.getElementById('ageShow').textContent=age;
   document.getElementById('sumV').textContent=Math.round(S*10)/10+' mm';
   if(S<5){document.getElementById('bfV').textContent='—';document.getElementById('catV').textContent='—';renderTable(-1);return;}
   var bf=bfPct(age,S),c=catOf(bf);
@@ -160,9 +180,11 @@ function calc(){
 function setSex(s){
   sex=s;
   var m=document.getElementById('sexM'),f=document.getElementById('sexF');
-  if(s==='m'){m.className='on-m';f.className='';}else{f.className='on-f';m.className='';}
+  if(s==='m'){m.className='on-m';f.className='';document.getElementById('bdate').value='1989-08-03';}
+  else{f.className='on-f';m.className='';document.getElementById('bdate').value='1990-09-02';}
   calc();
 }
+document.getElementById('bdate').value='1989-08-03';
 calc();
 </script>
 </body>
