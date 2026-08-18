@@ -51,6 +51,15 @@ tbody tr.cur td{background:var(--info-bg);color:var(--info-text);font-weight:500
 ul{margin:8px 0 0;padding-left:20px}
 li{font-size:13.5px;margin-bottom:6px}
 .tip{background:var(--surface);border-radius:var(--r-md);padding:12px 14px;font-size:12.5px;color:var(--text-2)}
+.btn{display:inline-block;padding:9px 22px;border:0;border-radius:var(--r-md);background:var(--blue);color:#fff;font-size:13.5px;font-family:inherit;cursor:pointer;font-weight:500}
+.btn:hover{opacity:.9}
+.btn.ghost{background:transparent;border:0.5px solid var(--line-2);color:var(--text-2)}
+.log-date{font-size:13px;font-weight:500;color:var(--text-2);margin:14px 0 6px}
+.log-item{background:var(--surface);border-radius:var(--r-md);padding:10px 12px;margin-bottom:6px;font-size:12.5px;color:var(--text);line-height:1.7}
+.log-item .lt{font-size:11.5px;color:var(--text-3)}
+.log-item .lv{font-weight:500}
+.log-del{margin-left:8px;background:none;border:0;color:var(--text-3);cursor:pointer;font-size:12px;text-decoration:underline;font-family:inherit}
+.empty{color:var(--text-3);font-size:12.5px;padding:6px 0}
 footer{margin-top:36px;font-size:12px;color:var(--text-3);text-align:center}
 @media(max-width:640px){.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}.points{grid-template-columns:1fr}}
 </style>
@@ -81,6 +90,10 @@ footer{margin-top:36px;font-size:12px;color:var(--text-3);text-align:center}
       <div><p class="k">皮褶总和</p><p class="v" id="sumV">48 mm</p></div>
       <div><p class="k">估算体脂率</p><p class="v" id="bfV">17.5%</p></div>
       <div><p class="k">体型等级</p><p class="v" id="catV" style="color:var(--teal)">理想身材</p></div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <button class="btn" onclick="saveLog()">提交记录</button>
+      <span class="note" style="margin:0">保存本次读数与体脂率，按日期归档在下方日志中（存于本机浏览器）</span>
     </div>
     <p style="font-size:13px;font-weight:500;margin:4px 0 0">② 对照表：皮褶总和 (mm) → 体脂率 (%)</p>
     <div class="tblwrap">
@@ -134,6 +147,15 @@ footer{margin-top:36px;font-size:12px;color:var(--text-3);text-align:center}
     <li>体脂钳法误差约 ±1%–3%，更适合追踪变化趋势，绝对值仅供参考，不能替代医学诊断。</li>
   </ul>
 
+  <h2>⑦ 测量日志</h2>
+  <div class="card">
+    <div id="logList"></div>
+    <div style="margin-top:12px">
+      <button class="btn ghost" onclick="clearLogs()">清空全部记录</button>
+    </div>
+    <p class="note">记录保存在本机浏览器（localStorage），清除浏览器数据或换设备会丢失；如需长期保存可截图或导出。</p>
+  </div>
+
   <footer>体脂钳使用对照表 · 数据来源：Durnin-Womersley 公式、长岭晋吉标准、WHO 推荐标准</footer>
 </div>
 
@@ -186,6 +208,40 @@ function setSex(s){
 }
 document.getElementById('bdate').value='1989-08-03';
 calc();
+var LOG_KEY='bf_logs_v1';
+function loadLogs(){try{return JSON.parse(localStorage.getItem(LOG_KEY))||[]}catch(e){return[]}}
+function saveLogs(l){localStorage.setItem(LOG_KEY,JSON.stringify(l))}
+function saveLog(){
+  var S=Math.round((val('m1')+val('m2')+val('m3')+val('m4'))*10)/10;
+  if(S<5||document.getElementById('bfV').textContent==='—'){alert('请先输入有效的四部位读数（总和需≥5mm）再提交。');return;}
+  var now=new Date();
+  var rec={id:now.getTime()+''+Math.floor(Math.random()*1000),t:now.getTime(),sex:sex==='m'?'男':'女',age:ageFrom(document.getElementById('bdate').value),m1:val('m1'),m2:val('m2'),m3:val('m3'),m4:val('m4'),S:S,bf:document.getElementById('bfV').textContent,cat:document.getElementById('catV').textContent};
+  var l=loadLogs();l.push(rec);saveLogs(l);renderLogs();
+}
+function p2(n){return (n<10?'0':'')+n}
+function fmtDate(ts){var d=new Date(ts);return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())}
+function fmtTime(ts){var d=new Date(ts);return p2(d.getHours())+':'+p2(d.getMinutes())}
+function renderLogs(){
+  var l=loadLogs(),el=document.getElementById('logList');
+  if(!l.length){el.innerHTML='<p class="empty">暂无记录。输入四部位读数后点击「提交记录」即可保存，同一天的记录会归档在一起。</p>';return;}
+  l.sort(function(a,b){return b.t-a.t});
+  var html='',lastDate='';
+  for(var i=0;i<l.length;i++){
+    var r=l[i],d=fmtDate(r.t);
+    if(d!==lastDate){html+='<div class="log-date">'+d+'</div>';lastDate=d;}
+    html+='<div class="log-item"><span class="lt">'+fmtTime(r.t)+' · '+r.sex+' · '+r.age+'岁</span> ｜ 三头肌 '+r.m1+'、二头肌 '+r.m2+'、肩胛下 '+r.m3+'、髂嵴上 '+r.m4+' mm ｜ 总和 '+r.S+' mm ｜ <span class="lv">体脂率 '+r.bf+' · '+r.cat+'</span><button class="log-del" onclick="delLog('+i+')">删除</button></div>';
+  }
+  el.innerHTML=html;
+}
+function delLog(i){
+  var l=loadLogs();l.sort(function(a,b){return b.t-a.t});
+  l.splice(i,1);saveLogs(l);renderLogs();
+}
+function clearLogs(){
+  if(!loadLogs().length)return;
+  if(confirm('确定清空全部测量日志吗？此操作不可恢复。')){localStorage.removeItem(LOG_KEY);renderLogs();}
+}
+renderLogs();
 </script>
 </body>
 </html>
