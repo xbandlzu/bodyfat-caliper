@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>体脂钳使用对照表 · 皮褶厚度法（单位:毫米）</title>
+<style>
+:root{
+  --bg:#f6f6f4;--card:#ffffff;--surface:#f0f0ec;
+  --text:#2c2c2a;--text-2:#5f5e5a;--text-3:#888780;
+  --line:rgba(44,44,42,.12);--line-2:rgba(44,44,42,.28);
+  --info-bg:#e6f1fb;--info-text:#0c447c;
+  --blue:#185fa5;--blue-bg:#e6f1fb;--blue-text:#0c447c;
+  --pink:#993556;--pink-bg:#fbeaf0;--pink-text:#72243e;
+  --teal:#0f6e56;--green:#3b6d11;--amber:#854f0b;--red:#a32d2d;
+  --r-md:8px;--r-lg:12px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;line-height:1.6;font-size:14px}
+.wrap{max-width:780px;margin:0 auto;padding:32px 20px 64px}
+h1{font-size:24px;font-weight:500;margin:0 0 4px}
+.sub{color:var(--text-2);font-size:13px;margin:0 0 24px}
+h2{font-size:16px;font-weight:500;margin:28px 0 12px;padding-top:8px;border-top:0.5px solid var(--line)}
+.card{background:var(--card);border:0.5px solid var(--line);border-radius:var(--r-lg);padding:18px 20px}
+.seg{display:flex;gap:8px;margin-bottom:14px}
+.seg button{flex:1;padding:9px 0;border-radius:var(--r-md);border:0.5px solid var(--line-2);background:transparent;color:var(--text-2);font-size:13px;cursor:pointer;font-family:inherit}
+.seg button.on-m{background:var(--blue-bg);border-color:var(--blue);color:var(--blue-text);font-weight:500}
+.seg button.on-f{background:var(--pink-bg);border-color:var(--pink);color:var(--pink-text);font-weight:500}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+label{display:block;font-size:12px;color:var(--text-2);margin-bottom:5px}
+input[type=number]{width:100%;padding:8px 10px;border:0.5px solid var(--line-2);border-radius:var(--r-md);background:var(--card);color:var(--text);font-size:13px;font-family:inherit}
+input[type=number]:focus{outline:none;border-color:var(--blue)}
+.cards{margin:16px 0}
+.cards>div{background:var(--surface);border-radius:var(--r-md);padding:12px 14px}
+.cards .k{font-size:12px;color:var(--text-2);margin:0 0 4px}
+.cards .v{font-size:24px;font-weight:500;margin:0}
+.tblwrap{border:0.5px solid var(--line);border-radius:var(--r-md);overflow:hidden;margin-top:10px}
+.tblscroll{max-height:340px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:fixed;background:var(--card)}
+th,td{padding:7px 4px;text-align:center;border-bottom:0.5px solid var(--line);color:var(--text)}
+thead th{position:sticky;top:0;background:var(--surface);color:var(--text-2);font-weight:500;z-index:1}
+tbody tr.cur td{background:var(--info-bg);color:var(--info-text);font-weight:500}
+.note{font-size:12px;color:var(--text-3);margin:8px 0 0}
+.points{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.point{background:var(--card);border:0.5px solid var(--line);border-radius:var(--r-lg);padding:14px 16px}
+.point b{display:block;font-size:13px;margin-bottom:3px}
+.point span{font-size:12.5px;color:var(--text-2)}
+ul{margin:8px 0 0;padding-left:20px}
+li{font-size:13.5px;margin-bottom:6px}
+.tip{background:var(--surface);border-radius:var(--r-md);padding:12px 14px;font-size:12.5px;color:var(--text-2)}
+footer{margin-top:36px;font-size:12px;color:var(--text-3);text-align:center}
+@media(max-width:640px){.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}.points{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>体脂钳使用对照表</h1>
+  <p class="sub">皮褶厚度法 · Durnin-Womersley 公式 · 单位：毫米 (mm)</p>
+
+  <h2>① 体脂率计算器</h2>
+  <div class="card">
+    <div class="seg">
+      <button id="sexM" onclick="setSex('m')" class="on-m">男</button>
+      <button id="sexF" onclick="setSex('f')">女</button>
+    </div>
+    <div class="grid4" style="margin-bottom:10px">
+      <div><label>肱三头肌 (mm)</label><input id="m1" type="number" min="1" max="60" step="0.5" value="12" oninput="calc()"></div>
+      <div><label>肱二头肌 (mm)</label><input id="m2" type="number" min="1" max="60" step="0.5" value="6" oninput="calc()"></div>
+      <div><label>肩胛下角 (mm)</label><input id="m3" type="number" min="1" max="60" step="0.5" value="14" oninput="calc()"></div>
+      <div><label>髂嵴上 (mm)</label><input id="m4" type="number" min="1" max="60" step="0.5" value="16" oninput="calc()"></div>
+    </div>
+    <div style="max-width:180px;margin-bottom:14px"><label>年龄 (岁)</label><input id="age" type="number" min="17" max="80" value="28" oninput="calc()"></div>
+    <div class="grid3 cards">
+      <div><p class="k">皮褶总和</p><p class="v" id="sumV">48 mm</p></div>
+      <div><p class="k">估算体脂率</p><p class="v" id="bfV">17.5%</p></div>
+      <div><p class="k">体型等级</p><p class="v" id="catV" style="color:var(--teal)">理想身材</p></div>
+    </div>
+    <p style="font-size:13px;font-weight:500;margin:4px 0 0">② 对照表：皮褶总和 (mm) → 体脂率 (%)</p>
+    <div class="tblwrap">
+      <div class="tblscroll">
+        <table>
+          <thead id="theadRow"></thead>
+          <tbody id="tblBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <p class="note">注：按 Durnin-Womersley 公式计算，年龄列取组内中位年龄（17-19取18、20-29取25、30-39取35、40-49取45、50以上取55），结果仅供参考。</p>
+  </div>
+
+  <h2>③ 测量方法与点位</h2>
+  <div class="tip" style="margin-bottom:10px">统一测身体右侧 · 自然站立放松 · 每点位测 3 次取平均值（两次读数差 &lt; 1 mm 为有效）</div>
+  <div class="points">
+    <div class="point"><b>肱三头肌</b><span>上臂后侧，肩峰与肘尖（尺骨鹰嘴）连线中点，垂直捏起。</span></div>
+    <div class="point"><b>肱二头肌</b><span>上臂前侧，肩峰与肘尖连线中点，垂直捏起。</span></div>
+    <div class="point"><b>肩胛下角</b><span>右肩胛骨下角下方 1–2 cm，沿自然皮褶斜向捏起（与脊柱约 45°）。</span></div>
+    <div class="point"><b>髂嵴上</b><span>右侧髂嵴上方、腋前线处，斜向捏起。</span></div>
+  </div>
+
+  <h2>④ 单部位正常参考值</h2>
+  <div class="card" style="padding:8px 12px">
+    <table style="table-layout:auto;min-width:100%">
+      <thead><tr><th style="text-align:left">部位</th><th>男 (mm)</th><th>女 (mm)</th></tr></thead>
+      <tbody>
+        <tr><td style="text-align:left">肱三头肌</td><td>11.3 – 13.7</td><td>14.9 – 18.1</td></tr>
+        <tr><td style="text-align:left">肩胛下角</td><td>14.8 – 17.6</td><td>19.0 – 21.6</td></tr>
+        <tr><td style="text-align:left">腹部（脐旁）</td><td>5 – 15</td><td>12 – 20</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>⑤ 快速肥胖判定</h2>
+  <ul>
+    <li><b>长岭晋吉标准</b>：肱三头肌 + 肩胛下角之和，男 &gt; 35 mm、女 &gt; 45 mm → 肥胖。</li>
+    <li><b>WHO 三处标准</b>（三头肌 + 肩胛下 + 腹部）：男 &gt; 40 mm、女 &gt; 50 mm → 肥胖。</li>
+  </ul>
+
+  <h2>⑥ 注意事项</h2>
+  <ul>
+    <li>固定同一时间（建议晨起空腹）、同一侧、同一力度测量，数据才有可比性。</li>
+    <li>捏起皮肤时只夹皮肤 + 皮下脂肪，严禁夹到肌肉；读数时目光垂直刻度。</li>
+    <li>晚上或饭后测量水分堆积，读数偏高；40 岁后结果可酌情上浮 2%–3%。</li>
+    <li>体脂钳法误差约 ±1%–3%，更适合追踪变化趋势，绝对值仅供参考，不能替代医学诊断。</li>
+  </ul>
+
+  <footer>体脂钳使用对照表 · 数据来源：Durnin-Womersley 公式、长岭晋吉标准、WHO 推荐标准</footer>
+</div>
+
+<script>
+var COEF={m:{17:[1.1620,0.0630],20:[1.1631,0.0632],30:[1.1422,0.0544],40:[1.1620,0.0700],50:[1.1715,0.0779]},f:{17:[1.1549,0.0678],20:[1.1599,0.0717],30:[1.1423,0.0632],40:[1.1333,0.0612],50:[1.1339,0.0645]}};
+var sex='m';
+function key(a){return a<20?17:a<30?20:a<40?30:a<50?40:50;}
+function bfPct(a,S){var c=COEF[sex][key(a)],D=c[0]-c[1]*Math.log10(S);return (4.95/D-4.5)*100;}
+function catOf(v){if(sex==='m'){if(v<6)return['极低·备赛级','#a32d2d'];if(v<14)return['运动员级','#3b6d11'];if(v<18)return['理想身材','#0f6e56'];if(v<25)return['正常范围','#185fa5'];if(v<30)return['偏高','#854f0b'];return['肥胖','#a32d2d'];}if(v<14)return['过低·必需脂肪','#a32d2d'];if(v<21)return['运动员级','#3b6d11'];if(v<25)return['理想身材','#0f6e56'];if(v<32)return['正常范围','#185fa5'];if(v<39)return['偏高','#854f0b'];return['肥胖','#a32d2d'];}
+var GROUPS=[{l:'17-19岁',a:18},{l:'20-29岁',a:25},{l:'30-39岁',a:35},{l:'40-49岁',a:45},{l:'50岁以上',a:55}];
+function renderTable(cur){
+  var th='<tr><th>皮褶总和 (mm)</th>';
+  for(var i=0;i<GROUPS.length;i++)th+='<th>'+GROUPS[i].l+'</th>';
+  document.getElementById('theadRow').innerHTML=th+'</tr>';
+  var rows='';
+  for(var s=15;s<=100;s+=5){
+    var cls=(s===cur)?' class="cur"':'';
+    rows+='<tr'+cls+'><td>'+s+'</td>';
+    for(var j=0;j<GROUPS.length;j++)rows+='<td>'+Math.round(bfPct(GROUPS[j].a,s)*10)/10+'</td>';
+    rows+='</tr>';
+  }
+  document.getElementById('tblBody').innerHTML=rows;
+}
+function val(id){var v=parseFloat(document.getElementById(id).value);return isNaN(v)?0:v;}
+function calc(){
+  var S=val('m1')+val('m2')+val('m3')+val('m4');
+  var age=Math.max(17,Math.min(80,val('age')||28));
+  document.getElementById('sumV').textContent=Math.round(S*10)/10+' mm';
+  if(S<5){document.getElementById('bfV').textContent='—';document.getElementById('catV').textContent='—';renderTable(-1);return;}
+  var bf=bfPct(age,S),c=catOf(bf);
+  document.getElementById('bfV').textContent=Math.round(bf*10)/10+'%';
+  document.getElementById('catV').textContent=c[0];document.getElementById('catV').style.color=c[1];
+  renderTable(S);
+}
+function setSex(s){
+  sex=s;
+  var m=document.getElementById('sexM'),f=document.getElementById('sexF');
+  if(s==='m'){m.className='on-m';f.className='';}else{f.className='on-f';m.className='';}
+  calc();
+}
+calc();
+</script>
+</body>
+</html>
