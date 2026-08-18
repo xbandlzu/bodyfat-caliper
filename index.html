@@ -81,6 +81,10 @@ footer{margin-top:36px;font-size:12px;color:var(--text-3);text-align:center}
       <div><label>肩胛下角 (mm)</label><input id="m3" type="number" min="1" max="60" step="0.5" value="14" oninput="calc()"></div>
       <div><label>髂嵴上 (mm)</label><input id="m4" type="number" min="1" max="60" step="0.5" value="16" oninput="calc()"></div>
     </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px">
+      <div style="max-width:200px;flex:1;min-width:150px"><label>腹部（脐旁）(mm)</label><input id="m5" type="number" min="1" max="80" step="0.5" value="10" oninput="calc()"></div>
+      <p class="note" style="flex:1;min-width:220px;margin:0 0 4px">腹部仅用于「快速肥胖判定」（WHO 三处标准），<b>不参与</b>四部位体脂率公式。</p>
+    </div>
     <div style="max-width:220px;margin-bottom:14px">
       <label>出生日期（自动计算年龄）</label>
       <input id="bdate" type="date" onchange="calc()">
@@ -91,6 +95,7 @@ footer{margin-top:36px;font-size:12px;color:var(--text-3);text-align:center}
       <div><p class="k">估算体脂率</p><p class="v" id="bfV">17.5%</p></div>
       <div><p class="k">体型等级</p><p class="v" id="catV" style="color:var(--teal)">理想身材</p></div>
     </div>
+    <div id="quickBox" style="padding:12px 14px;border-radius:var(--r-md);background:var(--surface);font-size:12.5px;color:var(--text-2);line-height:1.9"></div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <button class="btn" onclick="saveLog()">提交记录</button>
       <span class="note" style="margin:0">保存本次读数与体脂率，按日期归档在下方日志中（存于本机浏览器）</span>
@@ -114,6 +119,7 @@ footer{margin-top:36px;font-size:12px;color:var(--text-3);text-align:center}
     <div class="point"><b>肱二头肌</b><span>上臂前侧，肩峰与肘尖连线中点，垂直捏起。</span></div>
     <div class="point"><b>肩胛下角</b><span>右肩胛骨下角下方 1–2 cm，沿自然皮褶斜向捏起（与脊柱约 45°）。</span></div>
     <div class="point"><b>髂嵴上</b><span>右侧髂嵴上方、腋前线处，斜向捏起。</span></div>
+    <div class="point"><b>腹部（脐旁）</b><span>脐右旁开约 2–3 cm 处，垂直捏起；此处皮褶较松、易偏高，需保持同一力度。</span></div>
   </div>
   <div class="tip" style="margin-top:10px">
     <b style="color:var(--text)">为什么是「髂嵴上」而不是「腹部」？</b><br>
@@ -150,10 +156,12 @@ footer{margin-top:36px;font-size:12px;color:var(--text-3);text-align:center}
   <h2>⑦ 测量日志</h2>
   <div class="card">
     <div id="logList"></div>
-    <div style="margin-top:12px">
+    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn ghost" onclick="exportLogs('csv')">导出 CSV</button>
+      <button class="btn ghost" onclick="exportLogs('txt')">导出文本</button>
       <button class="btn ghost" onclick="clearLogs()">清空全部记录</button>
     </div>
-    <p class="note">记录保存在本机浏览器（localStorage），清除浏览器数据或换设备会丢失；如需长期保存可截图或导出。</p>
+    <p class="note">记录保存在本机浏览器（localStorage），清除浏览器数据或换设备会丢失；点击「导出」可随时保存为 CSV / 文本文件。</p>
   </div>
 
   <footer>体脂钳使用对照表 · 数据来源：Durnin-Womersley 公式、长岭晋吉标准、WHO 推荐标准</footer>
@@ -193,11 +201,27 @@ function calc(){
   var age=ageFrom(document.getElementById('bdate').value);
   document.getElementById('ageShow').textContent=age;
   document.getElementById('sumV').textContent=Math.round(S*10)/10+' mm';
+  quickCheck();
   if(S<5){document.getElementById('bfV').textContent='—';document.getElementById('catV').textContent='—';renderTable(-1);return;}
   var bf=bfPct(age,S),c=catOf(bf);
   document.getElementById('bfV').textContent=Math.round(bf*10)/10+'%';
   document.getElementById('catV').textContent=c[0];document.getElementById('catV').style.color=c[1];
   renderTable(S);
+}
+function quickCheck(){
+  var m1=val('m1'),m3=val('m3'),m5=val('m5'),el=document.getElementById('quickBox');
+  var ls=Math.round((m1+m3)*10)/10,who=Math.round((m1+m3+m5)*10)/10;
+  var lsMax=sex==='m'?35:45,whoMax=sex==='m'?40:50;
+  if(m1+m3<5){el.textContent='快速肥胖判定：请先输入肱三头肌、肩胛下角读数。';return;}
+  var ok1=ls<=lsMax;
+  var html='<b style="color:var(--text)">快速肥胖判定</b><br>· 长岭晋吉（三头肌+肩胛下 = '+ls+' mm，阈值 &gt;'+lsMax+'）：<b style="color:'+(ok1?'var(--green)':'var(--red)')+'">'+(ok1?'未达肥胖阈值':'达到肥胖阈值')+'</b>';
+  if(m5>0){
+    var ok2=who<=whoMax;
+    html+='<br>· WHO 三处（三头肌+肩胛下+腹部 = '+who+' mm，阈值 &gt;'+whoMax+'）：<b style="color:'+(ok2?'var(--green)':'var(--red)')+'">'+(ok2?'未达肥胖阈值':'达到肥胖阈值')+'</b>';
+  }else{
+    html+='<br>· WHO 三处：填写腹部（脐旁）读数后显示';
+  }
+  el.innerHTML=html;
 }
 function setSex(s){
   sex=s;
@@ -211,11 +235,18 @@ calc();
 var LOG_KEY='bf_logs_v1';
 function loadLogs(){try{return JSON.parse(localStorage.getItem(LOG_KEY))||[]}catch(e){return[]}}
 function saveLogs(l){localStorage.setItem(LOG_KEY,JSON.stringify(l))}
+function quickOf(){
+  var m1=val('m1'),m3=val('m3'),m5=val('m5');
+  var lsMax=sex==='m'?35:45,whoMax=sex==='m'?40:50;
+  var ls=(m1+m3)>lsMax?'达肥胖阈值':'未达肥胖',who=(m1+m3+m5)>whoMax?'达肥胖阈值':'未达肥胖';
+  return {ls:ls,who:who};
+}
 function saveLog(){
   var S=Math.round((val('m1')+val('m2')+val('m3')+val('m4'))*10)/10;
   if(S<5||document.getElementById('bfV').textContent==='—'){alert('请先输入有效的四部位读数（总和需≥5mm）再提交。');return;}
   var now=new Date();
-  var rec={id:now.getTime()+''+Math.floor(Math.random()*1000),t:now.getTime(),sex:sex==='m'?'男':'女',age:ageFrom(document.getElementById('bdate').value),m1:val('m1'),m2:val('m2'),m3:val('m3'),m4:val('m4'),S:S,bf:document.getElementById('bfV').textContent,cat:document.getElementById('catV').textContent};
+  var q=quickOf();
+  var rec={id:now.getTime()+''+Math.floor(Math.random()*1000),t:now.getTime(),sex:sex==='m'?'男':'女',age:ageFrom(document.getElementById('bdate').value),m1:val('m1'),m2:val('m2'),m3:val('m3'),m4:val('m4'),m5:val('m5'),S:S,bf:document.getElementById('bfV').textContent,cat:document.getElementById('catV').textContent,ls:q.ls,who:q.who};
   var l=loadLogs();l.push(rec);saveLogs(l);renderLogs();
 }
 function p2(n){return (n<10?'0':'')+n}
@@ -229,7 +260,9 @@ function renderLogs(){
   for(var i=0;i<l.length;i++){
     var r=l[i],d=fmtDate(r.t);
     if(d!==lastDate){html+='<div class="log-date">'+d+'</div>';lastDate=d;}
-    html+='<div class="log-item"><span class="lt">'+fmtTime(r.t)+' · '+r.sex+' · '+r.age+'岁</span> ｜ 三头肌 '+r.m1+'、二头肌 '+r.m2+'、肩胛下 '+r.m3+'、髂嵴上 '+r.m4+' mm ｜ 总和 '+r.S+' mm ｜ <span class="lv">体脂率 '+r.bf+' · '+r.cat+'</span><button class="log-del" onclick="delLog('+i+')">删除</button></div>';
+    var m5txt=(r.m5===undefined||r.m5===null||r.m5==='')?'—':r.m5;
+    var ltxt=(r.ls?' ｜ <span class="lt">快速判定</span> 长岭晋吉 '+r.ls+' · WHO三处 '+(r.who||'—'):'');
+    html+='<div class="log-item"><span class="lt">'+fmtTime(r.t)+' · '+r.sex+' · '+r.age+'岁</span> ｜ 三头肌 '+r.m1+'、二头肌 '+r.m2+'、肩胛下 '+r.m3+'、髂嵴上 '+r.m4+'、腹部 '+m5txt+' mm ｜ 总和 '+r.S+' mm ｜ <span class="lv">体脂率 '+r.bf+' · '+r.cat+'</span>'+ltxt+'<button class="log-del" onclick="delLog('+i+')">删除</button></div>';
   }
   el.innerHTML=html;
 }
@@ -240,6 +273,35 @@ function delLog(i){
 function clearLogs(){
   if(!loadLogs().length)return;
   if(confirm('确定清空全部测量日志吗？此操作不可恢复。')){localStorage.removeItem(LOG_KEY);renderLogs();}
+}
+function dl(name,content,type){
+  var blob=new Blob([content],{type:type||'text/plain;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;
+  document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},100);
+}
+function exportLogs(fmt){
+  var l=loadLogs();
+  if(!l.length){alert('暂无记录可导出。');return;}
+  l.sort(function(a,b){return a.t-b.t});
+  var fname='体脂测量日志_'+fmtDate(Date.now());
+  if(fmt==='csv'){
+    var head=['日期','时间','性别','年龄','肱三头肌(mm)','肱二头肌(mm)','肩胛下角(mm)','髂嵴上(mm)','腹部(mm)','皮褶总和(mm)','估算体脂率','体型等级','长岭晋吉判定','WHO三处判定'];
+    var lines=[head.join(',')];
+    for(var i=0;i<l.length;i++){
+      var r=l[i];
+      lines.push([fmtDate(r.t),fmtTime(r.t),r.sex,r.age,r.m1,r.m2,r.m3,r.m4,(r.m5===undefined?'':r.m5),r.S,r.bf,r.cat,r.ls||'',r.who||''].join(','));
+    }
+    dl(fname+'.csv','\ufeff'+lines.join('\r\n'),'text/csv;charset=utf-8');
+  }else{
+    var txt='体脂钳测量日志（按日期排序）\r\n'+'====================\r\n';
+    for(var j=0;j<l.length;j++){
+      var r2=l[j];
+      txt+=fmtDate(r2.t)+' '+fmtTime(r2.t)+' | '+r2.sex+' '+r2.age+'岁\r\n';
+      txt+='  三头肌 '+r2.m1+'、二头肌 '+r2.m2+'、肩胛下 '+r2.m3+'、髂嵴上 '+r2.m4+'、腹部 '+(r2.m5===undefined?'—':r2.m5)+' mm\r\n';
+      txt+='  皮褶总和 '+r2.S+' mm | 体脂率 '+r2.bf+' | '+r2.cat+(r2.ls?' | 长岭晋吉 '+r2.ls+'、WHO三处 '+(r2.who||'—'):'')+'\r\n\r\n';
+    }
+    dl(fname+'.txt',txt,'text/plain;charset=utf-8');
+  }
 }
 renderLogs();
 </script>
